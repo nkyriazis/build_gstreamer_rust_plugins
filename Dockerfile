@@ -1,8 +1,8 @@
-from ubuntu
+FROM ubuntu
 
-env DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND noninteractive
 
-run apt-get update -y && apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+RUN apt-get update -y && apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
     gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
     gstreamer1.0-libav libgstrtspserver-1.0-dev libges-1.0-dev \
@@ -12,8 +12,8 @@ run apt-get update -y && apt-get install -y libgstreamer1.0-dev libgstreamer-plu
 
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git
 
-workdir gst-plugins-rs
+WORKDIR gst-plugins-rs
 
-run chmod +x ci/install-dav1d.sh
-run ci/install-dav1d.sh
-run cargo build --release --color=always --all --all-targets
+RUN chmod +x ci/install-dav1d.sh
+RUN ci/install-dav1d.sh
+RUN cargo build --release --color=always --all --all-targets

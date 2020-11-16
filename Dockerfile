@@ -1,19 +1,20 @@
-FROM ubuntu
+# FROM ubuntu
+FROM nvcr.io/nvidia/deepstream:5.0-20.07-triton
 
-ENV DEBIAN_FRONTEND noninteractive
+# install through pip, because apt-get is outdated for this image
+RUN pip3 install meson
 
-RUN apt-get update -y && apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-    gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-    gstreamer1.0-libav libgstrtspserver-1.0-dev libges-1.0-dev \
-    libgstreamer-plugins-bad1.0-dev \
-    libcsound64-dev llvm clang nasm libsodium-dev \
-    cargo ninja-build git meson freetype2-demos cmake libssl-dev libcairo2-dev libsdl-pango-dev
+# get the plugins
+RUN git clone https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git /gst-plugins-rs
 
-RUN git clone https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git
+# downgrade requirements for fallback
+RUN sed -i "s/v1_16/v1_14/g" /gst-plugins-rs/utils/fallbackswitch/Cargo.toml
 
-WORKDIR gst-plugins-rs
+# install cargo, as required
+RUN apt-get update -y && apt-get install -y cargo 
 
-RUN chmod +x ci/install-dav1d.sh
-RUN ci/install-dav1d.sh
-RUN cargo build --release --color=always --all --all-targets
+# build only fallback
+RUN cd /gst-plugins-rs/utils/fallbackswitch && cargo build --release --color=always
+
+# make it available to gstreamer
+ENV GST_PLUGIN_PATH /gst-plugins-rs/target/release
